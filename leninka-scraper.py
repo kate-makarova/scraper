@@ -34,14 +34,16 @@ class LeninkaScraper:
                 self.count += 1
 
     def extract_text_from_pdf_stream(self, url):
-        content = requests.get(self.base + url+'/pdf').content
+        r = requests.get(self.base + url+'/pdf')
         temp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-        temp.write(content)
+        temp.write(r.content)
         temp.close()
-        text = textract.process(temp.name)
-        text = text.decode("utf8")
+        text = textract.process(temp.name).decode('utf-8')
+        if 'î' in text:
+            text = self.decode_cp(text)
         splitted = url.split('/')
-        with open(self.output_folder + '/' + splitted[len(splitted)-1]+'.txt', 'w') as file:
+        name = self.output_folder + '/' + splitted[len(splitted)-1]+'.txt'
+        with open(name, 'w') as file:
             file.write(text)
 
     def load_article_page(self, url):
@@ -49,7 +51,16 @@ class LeninkaScraper:
         soup = BeautifulSoup(response.text, 'html.parser')
         print(soup.title)
 
+    def decode_cp(self, text):
+        result = ''
+        for c in text:
+            if c.isalpha() or c == '÷' or c == '×':
+                result += chr(ord(c) + 848)
+            else:
+                result += c
+        return result
 
 scraper = LeninkaScraper()
-scraper.scrape(1)
+#scraper.scrape(1)
+scraper.extract_text_from_pdf_stream('/article/n/dve-redaktsii-stihotvoreniya-b-l-pasternaka-zimnyaya-noch-ne-popravit-dnya-usilyami-svetilen-interpretatsiya-temy-lyubovnoy-strasti')
 

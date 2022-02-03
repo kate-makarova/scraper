@@ -1,3 +1,5 @@
 math
-textract
+textract~=1.6.4
 tempfile
+requests~=2.27.1
+beautifulsoup4~=4.8.2
